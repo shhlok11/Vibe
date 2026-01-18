@@ -39,14 +39,22 @@ export const ProjectForm = () => {
   });
 
   const handleMutationError = (error: unknown) => {
-    const data = (error as { data?: { code?: string | null; httpStatus?: number | null } } | null)?.data;
-    const errorCode = data?.code ?? undefined;
-    const httpStatus = data?.httpStatus ?? undefined;
+    const errorData =
+      (error as { data?: { code?: string | null; httpStatus?: number | null } } | null)?.data ??
+      (error as { shape?: { data?: { code?: string | null; httpStatus?: number | null } } } | null)
+        ?.shape?.data;
+    const errorCode = errorData?.code ?? undefined;
+    const httpStatus = errorData?.httpStatus ?? undefined;
+    const errorMessage = (error as { message?: string } | null)?.message ?? "";
     if (errorCode === "UNAUTHORIZED") {
       clerk.openSignIn();
       return;
     }
-    if (errorCode === "TOO_MANY_REQUESTS" || httpStatus === 429) {
+    if (
+      errorCode === "TOO_MANY_REQUESTS" ||
+      httpStatus === 429 ||
+      errorMessage.toLowerCase().includes("out of credits")
+    ) {
       router.push("/pricing");
     }
   };
