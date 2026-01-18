@@ -51,10 +51,12 @@ export const ProjectForm = () => {
     onError: (error) => {
       console.error(error);
       toast.error(error.message);
-      if (error.data?.code === "UNAUTHORIZED") {
+      const errorCode = error.data?.code;
+      const httpStatus = error.data?.httpStatus;
+      if (errorCode === "UNAUTHORIZED") {
         clerk.openSignIn();
       }
-      if (error.data?.code === "TOO_MANY_REQUESTS") {
+      if (errorCode === "TOO_MANY_REQUESTS" || httpStatus === 429) {
         router.push("/pricing");
       }
     }
