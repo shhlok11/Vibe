@@ -38,9 +38,10 @@ export const ProjectForm = () => {
     },
   });
 
-  const handleMutationError = (error: { data?: { code?: string; httpStatus?: number } }) => {
-    const errorCode = error.data?.code;
-    const httpStatus = error.data?.httpStatus;
+  const handleMutationError = (error: unknown) => {
+    const data = (error as { data?: { code?: string | null; httpStatus?: number | null } } | null)?.data;
+    const errorCode = data?.code ?? undefined;
+    const httpStatus = data?.httpStatus ?? undefined;
     if (errorCode === "UNAUTHORIZED") {
       clerk.openSignIn();
       return;
@@ -77,7 +78,7 @@ export const ProjectForm = () => {
         value: values.value,
       });
     } catch (error) {
-      handleMutationError(error as { data?: { code?: string; httpStatus?: number } });
+      handleMutationError(error);
     }
 
   }
