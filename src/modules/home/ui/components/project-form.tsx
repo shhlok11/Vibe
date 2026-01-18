@@ -38,6 +38,18 @@ export const ProjectForm = () => {
     },
   });
 
+  const handleMutationError = (error: { data?: { code?: string; httpStatus?: number } }) => {
+    const errorCode = error.data?.code;
+    const httpStatus = error.data?.httpStatus;
+    if (errorCode === "UNAUTHORIZED") {
+      clerk.openSignIn();
+      return;
+    }
+    if (errorCode === "TOO_MANY_REQUESTS" || httpStatus === 429) {
+      router.push("/pricing");
+    }
+  };
+
   const createProject = useMutation(trpc.projects.create.mutationOptions({
     onSuccess: (data) => {
       queryClient.invalidateQueries(
@@ -51,14 +63,7 @@ export const ProjectForm = () => {
     onError: (error) => {
       console.error(error);
       toast.error(error.message);
-      const errorCode = error.data?.code;
-      const httpStatus = error.data?.httpStatus;
-      if (errorCode === "UNAUTHORIZED") {
-        clerk.openSignIn();
-      }
-      if (errorCode === "TOO_MANY_REQUESTS" || httpStatus === 429) {
-        router.push("/pricing");
-      }
+      handleMutationError(error);
     }
   }));
 
@@ -67,9 +72,13 @@ export const ProjectForm = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log(values);
-    await createProject.mutateAsync({
-      value: values.value,
-    });
+    try {
+      await createProject.mutateAsync({
+        value: values.value,
+      });
+    } catch (error) {
+      handleMutationError(error as { data?: { code?: string; httpStatus?: number } });
+    }
 
   }
 
