@@ -65,6 +65,11 @@ export const ProjectForm = () => {
         trpc.projects.getMany.queryOptions()
       );
       router.push(`/projects/${data.id}`);
+      setTimeout(() => {
+        if (window.location.pathname === "/") {
+          window.location.href = `/projects/${data.id}`;
+        }
+      }, 500);
       queryClient.invalidateQueries(
         trpc.usage.getStatus.queryOptions()
       );
