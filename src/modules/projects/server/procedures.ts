@@ -81,13 +81,17 @@ export const projectsRouter = createTRPCRouter({
         }
       })
 
-      await inngest.send({
-        name: "code-agent/run",
-        data: {
-          value: input.value,
-          projectId: createdProject.id,
-        }
-      });
+      void inngest
+        .send({
+          name: "code-agent/run",
+          data: {
+            value: input.value,
+            projectId: createdProject.id,
+          },
+        })
+        .catch((error) => {
+          console.error("Failed to enqueue code-agent job", error);
+        });
 
       return createdProject;
     }),
